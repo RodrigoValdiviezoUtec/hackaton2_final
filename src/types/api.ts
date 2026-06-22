@@ -1,17 +1,17 @@
 // Tipos del contrato publico de TropelCare Control API.
-// Fuente: docs/indicaciones-backend.md. No inventar campos ni enums.
 
-/** Enums documentados en el contrato (seccion "Valores Permitidos"). */
 export type Severity = 'LEVE' | 'MODERADO' | 'GRAVE' | 'CRITICO'
-
-// --- Auth ---
+export type VitalState = 'ESTABLE' | 'HAMBRIENTO' | 'AGITADO' | 'MUTANDO' | 'CRITICO'
+export type Species = 'BLOBITO' | 'CHISPA' | 'GRUNON' | 'DORMILON' | 'GLITCHY'
+export type SignalType = 'HAMBRE' | 'ABANDONO' | 'MUTACION' | 'FUGA' | 'CONFLICTO' | 'REPRODUCCION_MASIVA' | 'SENAL_CORRUPTA'
+export type SignalStatus = 'RECIBIDA' | 'PROCESANDO' | 'ATENDIDA'
+export type SortOption = 'name,asc' | 'updatedAt,desc' | 'chaosIndex,desc'
 
 export interface User {
   id: string
   displayName: string
   email: string
   teamCode: string
-  /** Documentado: "OPERATOR". Se deja como string para no romper ante otros roles. */
   role: string
 }
 
@@ -21,16 +21,12 @@ export interface LoginRequest {
   password: string
 }
 
-/** Respuesta de POST /auth/login. */
 export interface LoginResponse {
   token: string
   expiresAt: string
   user: User
 }
 
-// --- Dashboard ---
-
-/** Respuesta de GET /dashboard/summary. */
 export interface DashboardSummary {
   totalTropels: number
   criticalTropels: number
@@ -40,13 +36,95 @@ export interface DashboardSummary {
   generatedAt: string
 }
 
-// --- Errores ---
-
-/** Formato unico de error de la API (seccion "Errores"). */
 export interface ApiError {
   error: string
   message: string
   timestamp: string
   path: string
   details: Record<string, unknown>
+}
+
+// --- Tropeles ---
+
+export interface TropelSector {
+  id: string
+  name: string
+  sectorCode: string
+}
+
+export interface Tropel {
+  id: string
+  name: string
+  species: Species
+  vitalState: VitalState
+  energyLevel: number
+  chaosIndex: number
+  mutationStage: number
+  guardianName: string
+  sector: TropelSector
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TropelPage {
+  content: Tropel[]
+  totalElements: number
+  totalPages: number
+  currentPage: number
+  size: number
+}
+
+export interface TropelFilters {
+  page: number
+  size: 10 | 20 | 50
+  species?: Species
+  vitalState?: VitalState
+  sectorId?: string
+  q?: string
+  sort?: SortOption
+}
+
+// --- Sectores ---
+
+export interface Sector {
+  id: string
+  sectorCode: string
+  name: string
+  climate: string
+  capacity: number
+  currentLoad: number
+  stabilityLevel: number
+  updatedAt: string
+}
+
+// --- Signals ---
+
+export interface Signal {
+  id: string
+  tropelId: string
+  signalType: SignalType
+  severity: Severity
+  status: SignalStatus
+  rawContent: string
+  createdAt: string
+  updatedAt: string
+  tropel?: {
+    id: string
+    name: string
+    species: Species
+  }
+}
+
+export interface SignalFeedResponse {
+  items: Signal[]
+  nextCursor: string | null
+  hasMore: boolean
+  totalEstimate: number
+}
+
+export interface SignalFeedFilters {
+  signalType?: SignalType
+  severity?: Severity
+  status?: SignalStatus
+  q?: string
 }

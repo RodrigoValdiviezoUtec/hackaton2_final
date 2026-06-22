@@ -111,6 +111,17 @@ function SummaryView({ data }: { data: DashboardSummary }) {
         </div>
       </section>
 
+      <section className="flex gap-3">
+        <a href="/tropels"
+          className="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          Atlas de Tropeles →
+        </a>
+        <a href="/signals"
+          className="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          Feed de Señales →
+        </a>
+      </section>
+
       <p className="text-xs text-slate-500">
         Generado: {new Date(data.generatedAt).toLocaleString()}
       </p>
