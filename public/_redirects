@@ -1,1 +1,4 @@
-/*    /index.html   200
+# Proxy mismo-origen al backend (evita CORS, incluido PATCH). Debe ir ANTES del fallback SPA.
+/api/*  https://hackaton-20261-front-587720740455.us-east1.run.app/api/:splat  200
+# Fallback SPA: cualquier ruta abre index.html.
+/*      /index.html   200
