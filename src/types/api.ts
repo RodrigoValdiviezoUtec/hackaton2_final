@@ -97,6 +97,32 @@ export interface Sector {
   updatedAt: string
 }
 
+export interface SectorStoryStage {
+  id: string
+  order: number
+  title: string
+  narrative: string
+  dominantEvent: string
+  metrics: {
+    stability: number
+    energy: number
+    alerts: number
+    [key: string]: number
+  }
+  assetKey: string
+  colorToken: string
+  progress: number
+}
+
+export interface SectorStoryResponse {
+  sector: {
+    id: string
+    name: string
+    climate: string
+  }
+  stages: SectorStoryStage[]
+}
+
 // --- Signals ---
 
 export interface Signal {
