@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* Respeto global a prefers-reduced-motion: neutraliza cualquier animacion/transicion
+   (transiciones de tarjetas, animate-pulse/ping/bounce, scroll suave) sin romper layout. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

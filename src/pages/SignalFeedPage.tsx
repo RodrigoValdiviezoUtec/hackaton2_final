@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { getSignalFeed } from '../services/signals.service'
 import { getApiErrorMessage } from '../services/http'
 import type { Signal, SignalFeedFilters, SignalStatus, SignalType, Severity } from '../types/api'
 import { ErrorState, Spinner } from '../components/ui'
+
+/** Contexto que el feed expone al detalle (modal) via <Outlet>. */
+export interface FeedOutletContext {
+  /** El detalle lo llama tras un PATCH exitoso para reflejar el cambio en la lista. */
+  onSignalUpdated: (signal: Signal) => void
+}
 
 const SIGNAL_TYPES: SignalType[] = ['HAMBRE', 'ABANDONO', 'MUTACION', 'FUGA', 'CONFLICTO', 'REPRODUCCION_MASIVA', 'SENAL_CORRUPTA']
 const SEVERITIES: Severity[] = ['LEVE', 'MODERADO', 'GRAVE', 'CRITICO']
@@ -30,6 +36,8 @@ export function SignalFeedPage() {
   const [error, setError] = useState<string | null>(null)
   const inFlightRef = useRef(false)
   const abortRef = useRef<AbortController | null>(null)
+  // Token monotonico: solo la request mas reciente puede tocar el estado.
+  const reqIdRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
   // stable filter key to detect filter changes
   const filterKey = searchParams.toString()
@@ -37,6 +45,7 @@ export function SignalFeedPage() {
   // reset on filter change
   useEffect(() => {
     abortRef.current?.abort()
+    reqIdRef.current++ // invalida cualquier request en vuelo del filtro anterior
     setItems([])
     setCursor(null)
     setHasMore(true)
@@ -47,11 +56,17 @@ export function SignalFeedPage() {
   const loadMore = useCallback(async (currentCursor: string | null, currentFilters: SignalFeedFilters) => {
     if (inFlightRef.current) return
     inFlightRef.current = true
-    abortRef.current = new AbortController()
+    const reqId = ++reqIdRef.current
+    const controller = new AbortController()
+    abortRef.current = controller
     setLoading(true)
     setError(null)
     try {
-      const data = await getSignalFeed({ ...currentFilters, cursor: currentCursor ?? undefined, limit: 15 })
+      const data = await getSignalFeed(
+        { ...currentFilters, cursor: currentCursor ?? undefined, limit: 15 },
+        controller.signal,
+      )
+      if (reqId !== reqIdRef.current) return // request obsoleta: descartar
       setItems((prev) => {
         const ids = new Set(prev.map((i) => i.id))
         return [...prev, ...data.items.filter((i) => !ids.has(i.id))]
@@ -59,15 +74,21 @@ export function SignalFeedPage() {
       setCursor(data.nextCursor)
       setHasMore(data.hasMore)
     } catch (err) {
-      if (!abortRef.current?.signal.aborted) {
-        setError(getApiErrorMessage(err, 'Error al cargar señales'))
-      }
+      if (controller.signal.aborted || reqId !== reqIdRef.current) return
+      setError(getApiErrorMessage(err, 'Error al cargar señales'))
     } finally {
-      inFlightRef.current = false
-      setLoading(false)
+      if (reqId === reqIdRef.current) {
+        inFlightRef.current = false
+        setLoading(false)
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey])
+
+  // El detalle (modal) reporta el cambio de estado para reflejarlo sin recargar el feed.
+  const onSignalUpdated = useCallback((updated: Signal) => {
+    setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+  }, [])
 
   // initial load
   useEffect(() => {
@@ -127,7 +148,13 @@ export function SignalFeedPage() {
 
         {/* Items */}
         {items.map((sig) => (
-          <SignalCard key={sig.id} signal={sig} onClick={() => navigate(`/signals/${sig.id}`)} />
+          <SignalCard
+            key={sig.id}
+            signal={sig}
+            onClick={() =>
+              navigate({ pathname: `/signals/${sig.id}`, search: searchParams.toString() })
+            }
+          />
         ))}
 
         {/* Sentinel */}
@@ -142,6 +169,9 @@ export function SignalFeedPage() {
           <p className="text-center py-12 text-slate-400">Sin señales con estos filtros</p>
         )}
       </main>
+
+      {/* Detalle como modal: el feed sigue montado debajo (posicion conservada). */}
+      <Outlet context={{ onSignalUpdated } satisfies FeedOutletContext} />
     </div>
   )
 }

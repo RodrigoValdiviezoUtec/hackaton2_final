@@ -250,11 +250,14 @@ export function SectorStoryPage() {
         </div>
       </header>
 
-      {/* Grid del Scrollytelling */}
-      <main className="mx-auto max-w-6xl px-4 pt-24 pb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
-        
+      {/* Grid del Scrollytelling.
+          Mobile: flex-col para que <main> sea el bloque contenedor del sticky y el
+          visual quede fijo arriba mientras la narrativa scrollea debajo.
+          Desktop: grid de 2 columnas con el visual sticky en la columna derecha. */}
+      <main className="mx-auto max-w-6xl px-4 pt-24 pb-16 flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start relative">
+
         {/* LADO IZQUIERDO: Narrativa interactiva (Scrollable) */}
-        <section className="lg:col-span-7 space-y-[45vh] my-[20vh] relative z-10">
+        <section className="order-2 lg:order-none lg:col-span-7 space-y-[45vh] my-[20vh] relative z-10">
           {story.stages.map((stage, index) => {
             const isActive = index === activeStageIndex
             const stageTheme = COLOR_THEMES[stage.colorToken] || DEFAULT_THEME
@@ -312,8 +315,8 @@ export function SectorStoryPage() {
           })}
         </section>
 
-        {/* LADO DERECHO: Visualización persistente (Sticky) */}
-        <section className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full relative z-20">
+        {/* LADO DERECHO (desktop) / SUPERIOR (mobile): Visualización persistente sticky */}
+        <section className="order-1 lg:order-none lg:col-span-5 sticky top-20 lg:top-24 self-start space-y-4 w-full relative z-30">
           
           {/* Tarjeta Visual de Clima y Narración */}
           <div

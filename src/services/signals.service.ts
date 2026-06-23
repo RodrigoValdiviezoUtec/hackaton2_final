@@ -3,6 +3,7 @@ import type { Signal, SignalFeedFilters, SignalFeedResponse, SignalStatus } from
 
 export async function getSignalFeed(
   params: SignalFeedFilters & { cursor?: string; limit?: number },
+  signal?: AbortSignal,
 ): Promise<SignalFeedResponse> {
   const p: Record<string, string | number> = {}
   if (params.cursor) p.cursor = params.cursor
@@ -11,7 +12,7 @@ export async function getSignalFeed(
   if (params.severity) p.severity = params.severity
   if (params.status) p.status = params.status
   if (params.q) p.q = params.q
-  const res = await http.get<SignalFeedResponse>('/signals/feed', { params: p })
+  const res = await http.get<SignalFeedResponse>('/signals/feed', { params: p, signal })
   return res.data
 }
 

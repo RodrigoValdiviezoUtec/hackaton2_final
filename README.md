@@ -5,9 +5,9 @@ Consola operativa en React + TypeScript y Tailwind CSS para el monitoreo y gesti
 ---
 
 ## 👥 Integrantes y Códigos
-*   **Integrante 1:** [Nombre Completo / Código]
-*   **Integrante 2:** [Nombre Completo / Código]
-*   **Integrante 3 (Tú):** [Nombre Completo / Código]
+*   **Integrante 1:** José Rodrigo Valdiviezo Ortiz / código 202510135
+*   **Integrante 2:** Rodrigo Franco Huertos Ochoa / código 202510118
+*   **Integrante 3:** Francesco Aroldo Ferrante Quino / código 202510174
 
 ---
 
